@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+{% block body_class %}layout-center{% endblock %}
+{% block content %}
+<div class="shell-center">
+    <div class="panel home-card">
+        <div class="dash-brand" style="justify-content:center;margin-bottom:1rem;">
+            <span class="logo"></span>
+            <div style="text-align:left;">
+                <h1 style="margin:0;font-size:1.5rem;">Organisation portal</h1>
+                <small class="muted">Decoy surface · Python / Flask honeypot</small>
+            </div>
+        </div>
+        <p>Front page for the lab trap. Traffic is monitored: IPs, commands, and login bursts are recorded for analysis.</p>
+        <a href="{{ url_for('login') }}"><button type="button" class="btn">Admin login</button></a>
+    </div>
+</div>
+{% endblock %}

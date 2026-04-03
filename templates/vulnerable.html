@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block title %}Command{% endblock %}
+{% block content %}
+<div class="dash-wrap panel" style="background:transparent;border:none;box-shadow:none;">
+    <header class="dash-header">
+        <div class="dash-brand">
+            <span class="logo"></span>
+            <div>
+                <h1 style="margin:0;">Command output</h1>
+                <small>Vulnerable endpoint · lab only</small>
+            </div>
+        </div>
+        <a href="{{ url_for('admin') }}"><button type="button" class="btn-secondary">← Dashboard</button></a>
+    </header>
+
+    <main class="main-panel panel" style="max-width:900px;margin:0 auto;">
+        {% if raw_cmd %}
+        <p style="margin-top:0;">
+            <span class="muted">Submitted:</span> <code style="color:var(--info);">{{ raw_cmd }}</code>
+        </p>
+        <p>
+            {% if risk_level == 'dangerous' %}
+            <span class="badge badge-dangerous">Dangerous</span>
+            {% elif risk_level == 'suspicious' %}
+            <span class="badge badge-suspicious">Suspicious</span>
+            {% else %}
+            <span class="badge badge-safe">Safe</span>
+            {% endif %}
+            <span class="muted">{{ risk_reason }}</span>
+        </p>
+        {% endif %}
+        <h2>Output</h2>
+        <pre class="cmd-out">{{ output }}</pre>
+        <a href="{{ url_for('admin') }}"><button type="button">Back to dashboard</button></a>
+    </main>
+</div>
+{% endblock %}

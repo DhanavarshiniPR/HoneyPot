@@ -1,0 +1,356 @@
+{% extends "base.html" %}
+{% block title %}Analytics{% endblock %}
+{% block content %}
+<div class="dash-wrap panel" style="background:transparent;border:none;box-shadow:none;">
+    <header class="dash-header">
+        <div class="dash-brand">
+            <span class="logo"></span>
+            <div>
+                <h1 style="margin:0;">Attack analytics</h1>
+                <small>
+                    {% if mongodb_enabled %}Events: MongoDB · {% else %}Events: JSONL · {% endif %}
+                    Charts: Chart.js · Geo: optional (ip-api cache on login/command)
+                </small>
+            </div>
+        </div>
+        <a href="{{ url_for('admin') }}"><button type="button" class="btn-secondary">← Dashboard</button></a>
+    </header>
+
+    <div class="dash-grid">
+        <aside class="sidebar panel">
+            <h2>Navigate</h2>
+            <nav>
+                <ul>
+                    <li><a href="{{ url_for('admin') }}">Overview</a></li>
+                    <li><a href="{{ url_for('view_logs') }}">View Logs</a></li>
+                    <li><a class="active" href="{{ url_for('analytics') }}">Analytics</a></li>
+                </ul>
+            </nav>
+        </aside>
+        <main class="main-panel panel">
+            <h2>Filters</h2>
+            <form method="get" class="filter-form">
+                <input type="text" name="ip" placeholder="IP" value="{{ active_filters.ip }}">
+                <input type="text" name="country" placeholder="Country / code" value="{{ active_filters.country }}">
+                <input type="text" name="attack_id" placeholder="ATT&CK ID (e.g. T1082)" value="{{ active_filters.attack_id }}">
+                <select name="type">
+                    <option value="">All event types</option>
+                    <option value="command" {% if active_filters.type == 'command' %}selected{% endif %}>command</option>
+                    <option value="login_attempt" {% if active_filters.type == 'login_attempt' %}selected{% endif %}>login_attempt</option>
+                </select>
+                <select name="risk">
+                    <option value="">All risk levels</option>
+                    <option value="safe" {% if active_filters.risk == 'safe' %}selected{% endif %}>safe</option>
+                    <option value="suspicious" {% if active_filters.risk == 'suspicious' %}selected{% endif %}>suspicious</option>
+                    <option value="dangerous" {% if active_filters.risk == 'dangerous' %}selected{% endif %}>dangerous</option>
+                </select>
+                <select name="since_minutes">
+                    <option value="" {% if not active_filters.since_minutes %}selected{% endif %}>Any time</option>
+                    <option value="60" {% if active_filters.since_minutes == '60' %}selected{% endif %}>Last 60m</option>
+                    <option value="360" {% if active_filters.since_minutes == '360' %}selected{% endif %}>Last 6h</option>
+                    <option value="1440" {% if active_filters.since_minutes == '1440' %}selected{% endif %}>Last 24h</option>
+                    <option value="10080" {% if active_filters.since_minutes == '10080' %}selected{% endif %}>Last 7d</option>
+                </select>
+                <button type="submit">Apply</button>
+            </form>
+
+            <h2>Volume</h2>
+            <div class="stat-row">
+                <div class="stat-card">
+                    <div class="val">{{ agg.total_interactions }}</div>
+                    <div class="lbl">Total interactions (commands + logins)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val">{{ agg.total_commands }}</div>
+                    <div class="lbl">Commands executed (logged)</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val">{{ agg.total_logins }}</div>
+                    <div class="lbl">Login attempts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val">{{ agg.unique_ips_commands }}</div>
+                    <div class="lbl">Distinct IPs (commands)</div>
+                </div>
+            </div>
+
+            <h2>Charts</h2>
+            <p class="muted">Visual summaries use the same event window as the tables below (last ~5000 events).</p>
+            <div class="chart-grid">
+                <div class="chart-box">
+                    <h3>Command risk mix</h3>
+                    <canvas id="chartRisk" aria-label="Risk distribution"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3>Events by hour (UTC)</h3>
+                    <canvas id="chartTimeline" aria-label="Hourly activity"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3>Top commands</h3>
+                    <canvas id="chartCommands" aria-label="Top commands"></canvas>
+                </div>
+                <div class="chart-box">
+                    <h3>Countries (geo-tagged events)</h3>
+                    <canvas id="chartCountries" aria-label="Countries"></canvas>
+                </div>
+            </div>
+
+            <h2>Geo heat ranking</h2>
+            <p class="muted">Country intensity by event share in current filter window.</p>
+            <table class="data">
+                <thead><tr><th>Country</th><th>Events</th><th>Heat</th></tr></thead>
+                <tbody>
+                    {% set max_country = (agg.chart_country_data|max) if agg.chart_country_data else 1 %}
+                    {% for lbl in agg.chart_country_labels %}
+                    {% set idx = loop.index0 %}
+                    {% set n = agg.chart_country_data[idx] %}
+                    <tr>
+                        <td>{{ lbl }}</td>
+                        <td>{{ n }}</td>
+                        <td>
+                            <div style="height:8px;border-radius:999px;background:var(--bg-deep);border:1px solid var(--border);overflow:hidden;min-width:140px;">
+                                <div style="height:100%;width:{{ ((n / max_country) * 100)|round(0, 'floor') if max_country else 0 }}%;background:linear-gradient(90deg, rgba(88,166,255,0.65), rgba(0,217,163,0.7));"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="muted">No geo data in this filter window.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h2>Command risk (numbers)</h2>
+            <p class="muted">Rules live in <code style="color:var(--info);">honeypot_core.classify_command</code> — tune for your environment.</p>
+            <div class="stat-row">
+                <div class="stat-card">
+                    <div class="val" style="color:var(--accent);">{{ agg.risk_counts.safe }}</div>
+                    <div class="lbl">Safe</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" style="color:var(--warn);">{{ agg.risk_counts.suspicious }}</div>
+                    <div class="lbl">Suspicious</div>
+                </div>
+                <div class="stat-card">
+                    <div class="val" style="color:var(--danger);">{{ agg.risk_counts.dangerous }}</div>
+                    <div class="lbl">Dangerous</div>
+                </div>
+            </div>
+
+            <h2>Suspicious activity summary</h2>
+            <ul class="muted" style="line-height:1.7;">
+                <li><strong style="color:var(--danger);">{{ agg.risk_counts.dangerous }}</strong> commands matched <em>dangerous</em> patterns (e.g. destructive ops, download primitives, registry abuse).</li>
+                <li><strong style="color:var(--warn);">{{ agg.risk_counts.suspicious }}</strong> commands matched <em>suspicious</em> reconnaissance or exfil-style primitives.</li>
+                <li><strong>{{ ip_flags|length }}</strong> IP(s) currently have brute-force or policy flags in stored state.</li>
+            </ul>
+
+            <h2>Most used commands</h2>
+            <table class="data">
+                <thead><tr><th>Command</th><th>Count</th></tr></thead>
+                <tbody>
+                    {% for cmd, n in agg.top_commands %}
+                    <tr><td><code>{{ cmd }}</code></td><td>{{ n }}</td></tr>
+                    {% else %}
+                    <tr><td colspan="2" class="muted">No commands in the recent event window.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h2>Top IPs by command activity</h2>
+            <table class="data">
+                <thead><tr><th>IP</th><th>Commands</th><th>Profile</th></tr></thead>
+                <tbody>
+                    {% for ip, n in agg.top_ips_by_commands %}
+                    <tr><td><code>{{ ip }}</code></td><td>{{ n }}</td><td><a href="{{ url_for('attacker_detail', ip_addr=ip) }}"><button type="button" class="btn-secondary">Open profile</button></a></td></tr>
+                    {% else %}
+                    <tr><td colspan="3" class="muted">—</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h2>Logins per IP</h2>
+            <table class="data">
+                <thead><tr><th>IP</th><th>Attempts (event log)</th></tr></thead>
+                <tbody>
+                    {% for ip, n in agg.login_by_ip %}
+                    <tr><td><code>{{ ip }}</code></td><td>{{ n }}</td></tr>
+                    {% else %}
+                    <tr><td colspan="2" class="muted">—</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h2>HTTP request volume (top IPs)</h2>
+            <table class="data">
+                <thead><tr><th>IP</th><th>Total requests</th></tr></thead>
+                <tbody>
+                    {% for ip, n in ip_request_counts %}
+                    <tr><td><code>{{ ip }}</code></td><td>{{ n }}</td></tr>
+                    {% else %}
+                    <tr><td colspan="2" class="muted">—</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h2>Brute-force flags (state)</h2>
+            <table class="data">
+                <thead><tr><th>IP</th><th>Flags</th><th>Recent stamps</th></tr></thead>
+                <tbody>
+                    {% for ip, flags in ip_flags.items() %}
+                    <tr>
+                        <td><code>{{ ip }}</code></td>
+                        <td>{% for f in flags %}<span class="badge badge-dangerous">{{ f }}</span> {% endfor %}</td>
+                        <td class="muted">{{ (login_attempts.get(ip) or [])|length }} in window</td>
+                    </tr>
+                    {% else %}
+                    <tr><td colspan="3" class="muted">No flags.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h2>Top sessions by actions</h2>
+            <table class="data">
+                <thead><tr><th>Session ID</th><th>Actions</th></tr></thead>
+                <tbody>
+                    {% for sid, n in agg.top_sessions %}
+                    <tr><td><code>{{ sid }}</code></td><td>{{ n }}</td></tr>
+                    {% else %}
+                    <tr><td colspan="2" class="muted">No sessions in this filter window.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <h2>MITRE ATT&amp;CK technique tags</h2>
+            <table class="data">
+                <thead><tr><th>Technique</th><th>Matches</th></tr></thead>
+                <tbody>
+                    {% for label, n in agg.top_techniques %}
+                    <tr><td><code>{{ label }}</code></td><td>{{ n }}</td></tr>
+                    {% else %}
+                    <tr><td colspan="2" class="muted">No tagged techniques yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </main>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+<script>
+(function () {
+  var rs = getComputedStyle(document.documentElement);
+  var muted = (rs.getPropertyValue('--muted') || '#8b9cb3').trim();
+  var grid = (rs.getPropertyValue('--border') || '#243040').trim();
+  Chart.defaults.color = muted;
+  Chart.defaults.borderColor = grid;
+  Chart.defaults.font.family = "'Outfit', system-ui, sans-serif";
+
+  var honeypotCharts = [];
+
+  function syncChartsToTheme() {
+    var rs2 = getComputedStyle(document.documentElement);
+    var m = (rs2.getPropertyValue('--muted') || '#8b9cb3').trim();
+    var g = (rs2.getPropertyValue('--border') || '#243040').trim();
+    Chart.defaults.color = m;
+    Chart.defaults.borderColor = g;
+    honeypotCharts.forEach(function (chart) {
+      chart.options.color = m;
+      var leg = chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels;
+      if (leg) leg.color = m;
+      if (chart.options.scales) {
+        Object.keys(chart.options.scales).forEach(function (key) {
+          var sc = chart.options.scales[key];
+          if (sc && sc.ticks) sc.ticks.color = m;
+          if (sc && sc.grid) sc.grid.color = g;
+        });
+      }
+      chart.update();
+    });
+  }
+  window.addEventListener('honeypot-themechange', syncChartsToTheme);
+
+  var riskSafe = {{ agg.risk_counts.safe }};
+  var riskSus = {{ agg.risk_counts.suspicious }};
+  var riskDan = {{ agg.risk_counts.dangerous }};
+  honeypotCharts.push(new Chart(document.getElementById('chartRisk'), {
+    type: 'doughnut',
+    data: {
+      labels: ['Safe', 'Suspicious', 'Dangerous'],
+      datasets: [{
+        data: [riskSafe, riskSus, riskDan],
+        backgroundColor: ['rgba(0, 217, 163, 0.75)', 'rgba(255, 176, 32, 0.75)', 'rgba(255, 92, 92, 0.75)'],
+        borderWidth: 0
+      }]
+    },
+    options: {
+      plugins: { legend: { position: 'bottom' } },
+      maintainAspectRatio: true
+    }
+  }));
+
+  var tlLabels = {{ agg.chart_timeline_labels | tojson }};
+  var tlData = {{ agg.chart_timeline_data | tojson }};
+  honeypotCharts.push(new Chart(document.getElementById('chartTimeline'), {
+    type: 'bar',
+    data: {
+      labels: tlLabels,
+      datasets: [{
+        label: 'Events',
+        data: tlData,
+        backgroundColor: 'rgba(0, 217, 163, 0.45)',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { maxRotation: 60, minRotation: 0, autoSkip: true, maxTicksLimit: 12 } },
+        y: { beginAtZero: true, ticks: { precision: 0 } }
+      }
+    }
+  }));
+
+  var cmdLabels = {{ agg.chart_command_labels | tojson }};
+  var cmdData = {{ agg.chart_command_data | tojson }};
+  honeypotCharts.push(new Chart(document.getElementById('chartCommands'), {
+    type: 'bar',
+    data: {
+      labels: cmdLabels.length ? cmdLabels : ['(no data)'],
+      datasets: [{
+        label: 'Count',
+        data: cmdData.length ? cmdData : [0],
+        backgroundColor: 'rgba(88, 166, 255, 0.55)',
+        borderRadius: 4
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      plugins: { legend: { display: false } },
+      scales: { x: { beginAtZero: true, ticks: { precision: 0 } } }
+    }
+  }));
+
+  var cLabels = {{ agg.chart_country_labels | tojson }};
+  var cData = {{ agg.chart_country_data | tojson }};
+  honeypotCharts.push(new Chart(document.getElementById('chartCountries'), {
+    type: 'pie',
+    data: {
+      labels: cLabels.length ? cLabels : ['No geo-tagged events yet'],
+      datasets: [{
+        data: cData.length ? cData : [1],
+        backgroundColor: [
+          'rgba(0, 217, 163, 0.65)', 'rgba(88, 166, 255, 0.65)', 'rgba(255, 176, 32, 0.65)',
+          'rgba(255, 92, 92, 0.55)', 'rgba(168, 85, 247, 0.55)', 'rgba(56, 189, 248, 0.55)',
+          'rgba(251, 113, 133, 0.55)', 'rgba(163, 230, 53, 0.5)', 'rgba(251, 191, 36, 0.55)',
+          'rgba(148, 163, 184, 0.55)'
+        ]
+      }]
+    },
+    options: {
+      plugins: { legend: { position: 'bottom' } }
+    }
+  }));
+})();
+</script>
+{% endblock %}

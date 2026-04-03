@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Attacker Profile{% endblock %}
+{% block content %}
+<div class="dash-wrap panel" style="background:transparent;border:none;box-shadow:none;">
+    <header class="dash-header">
+        <div class="dash-brand">
+            <span class="logo"></span>
+            <div>
+                <h1 style="margin:0;">Attacker profile</h1>
+                <small><code>{{ ip_addr }}</code>{% if mongodb_enabled %} · <span class="muted">MongoDB</span>{% endif %}</small>
+            </div>
+        </div>
+        <a href="{{ url_for('admin') }}"><button type="button" class="btn-secondary">← Dashboard</button></a>
+    </header>
+
+    <main class="main-panel panel">
+        <h2>Identity & telemetry</h2>
+        <div class="stat-row">
+            <div class="stat-card"><div class="val">{{ profile.hit_count or 0 }}</div><div class="lbl">Total hits</div></div>
+            <div class="stat-card"><div class="val" style="font-size:1rem;">{{ ip_geo.country or "—" }}</div><div class="lbl">Country</div></div>
+            <div class="stat-card"><div class="val" style="font-size:1rem;">{{ profile.first_seen or "—" }}</div><div class="lbl">First seen</div></div>
+            <div class="stat-card"><div class="val" style="font-size:1rem;">{{ profile.last_seen or "—" }}</div><div class="lbl">Last seen</div></div>
+        </div>
+
+        <h2>Known browsers and devices</h2>
+        <p class="muted">Browsers: {{ (profile.browsers or [])|join(", ") or "—" }} · Devices: {{ (profile.devices or [])|join(", ") or "—" }}</p>
+
+        <h2>Sessions</h2>
+        <table class="data">
+            <thead><tr><th>Session ID</th><th>Actions</th><th>Duration (sec)</th><th>User agent</th></tr></thead>
+            <tbody>
+                {% for s in sessions %}
+                <tr>
+                    <td><code>{{ s.session_id }}</code></td>
+                    <td>{{ s.actions or 0 }}</td>
+                    <td>{{ session_duration_seconds(s) }}</td>
+                    <td class="muted">{{ s.user_agent or "—" }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4" class="muted">No sessions found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2 style="margin-top:2rem;">Recent events</h2>
+        <table class="data">
+            <thead><tr><th>Timestamp</th><th>Type</th><th>Details</th><th>Risk</th><th>ATT&CK</th></tr></thead>
+            <tbody>
+                {% for e in events %}
+                <tr>
+                    <td class="muted">{{ e.ts }}</td>
+                    <td>{{ e.type }}</td>
+                    <td>{% if e.command %}<code>{{ e.command }}</code>{% elif e.path %}<code>{{ e.path }}</code>{% else %}<span class="muted">—</span>{% endif %}</td>
+                    <td>{% if e.risk_level %}<span class="badge {% if e.risk_level == 'dangerous' %}badge-dangerous{% elif e.risk_level == 'suspicious' %}badge-suspicious{% else %}badge-safe{% endif %}">{{ e.risk_level }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+                    <td class="muted">{% for t in e.attack_techniques or [] %}<code>{{ t.id }}</code>{% if not loop.last %}, {% endif %}{% else %}—{% endfor %}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5" class="muted">No events for this attacker yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </main>
+</div>
+{% endblock %}

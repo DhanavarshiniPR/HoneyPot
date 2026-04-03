@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block body_class %}layout-center{% endblock %}
+{% block content %}
+<div class="shell-center">
+    <div class="panel login-card">
+        <div class="dash-brand" style="margin-bottom:1rem;">
+            <span class="logo"></span>
+            <div>
+                <h1 style="margin:0;font-size:1.35rem;">Admin access</h1>
+                <small class="muted">Honeypot · accepts any credential</small>
+            </div>
+        </div>
+        <form method="post">
+            <label for="username">Username</label>
+            <input type="text" id="username" name="username" required autocomplete="username">
+
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" required autocomplete="current-password">
+
+            <button type="submit" class="btn" style="width:100%;">Sign in</button>
+        </form>
+        <p class="muted" style="font-size:0.85rem;margin-top:1.25rem;">Attempts are logged with IP for SOC training.</p>
+    </div>
+</div>
+{% endblock %}

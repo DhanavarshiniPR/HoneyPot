@@ -57,7 +57,10 @@ def _with_state(mutator):
     """Load JSON state, apply mutator, save. Used to avoid races in simple lab deployments."""
     state = load_state()
     mutator(state)
-    save_state(state)
+    try:
+        save_state(state)
+    except Exception:
+        logging.exception("State save failed; continuing without persistence")
     return state
 
 
@@ -316,7 +319,10 @@ def vulnerable():
         snap = refresh_geo_and_get_snapshot(load_state, save_state, ip)
         state = load_state()
         sid = ensure_session(state, session.get("sid"), ip, ua)
-        save_state(state)
+        try:
+            save_state(state)
+        except Exception:
+            logging.exception("Failed to save state during command handling")
         session["sid"] = sid
         try:
             if cmd == "ls":

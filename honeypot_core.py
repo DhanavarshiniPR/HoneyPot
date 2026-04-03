@@ -5,6 +5,7 @@ Kept in a small module so app.py stays readable and logic is easy to test or ext
 from __future__ import annotations
 
 import json
+import logging
 import os
 import re
 from collections import defaultdict
@@ -67,9 +68,19 @@ def load_state() -> dict[str, Any]:
 
 def save_state(state: dict[str, Any]) -> None:
     tmp = STATE_FILE + ".tmp"
-    with open(tmp, "w", encoding="utf-8") as f:
-        json.dump(state, f, indent=2)
-    os.replace(tmp, STATE_FILE)
+    try:
+        with open(tmp, "w", encoding="utf-8") as f:
+            json.dump(state, f, indent=2)
+        os.replace(tmp, STATE_FILE)
+    except OSError as exc:
+        # Deployment environments may have restricted filesystem writes.
+        # Keep request handling alive even when persistence is unavailable.
+        logging.getLogger(__name__).warning("State persistence failed: %s", exc)
+        try:
+            if os.path.isfile(tmp):
+                os.remove(tmp)
+        except OSError:
+            pass
 
 
 def prune_old_login_attempts(state: dict[str, Any]) -> None:

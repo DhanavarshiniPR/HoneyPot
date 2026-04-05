@@ -429,7 +429,8 @@
         .theme-toggle {
             position: fixed;
             top: max(1rem, env(safe-area-inset-top, 0px));
-            left: max(1rem, env(safe-area-inset-left, 0px));
+            left: 50%;
+            transform: translateX(-50%);
             z-index: 9999;
             display: inline-flex;
             align-items: center;
@@ -503,6 +504,12 @@
             border-width: 0;
         }
 
+        .layout-center .theme-toggle {
+            position: fixed;
+            top: max(1rem, env(safe-area-inset-top, 0px));
+            left: 50%;
+            transform: translateX(-50%);
+        }
         .layout-dashboard .theme-toggle {
             position: static;
             left: auto;
@@ -512,6 +519,12 @@
             margin-left: auto;
         }
         @media (max-width: 900px) {
+            .layout-center .theme-toggle {
+                position: fixed;
+                top: max(1rem, env(safe-area-inset-top, 0px));
+                left: 50%;
+                transform: translateX(-50%);
+            }
             .layout-dashboard .theme-toggle {
                 position: static;
             }
@@ -519,12 +532,10 @@
 
         /* Mobile: stack header — brand full width, controls aligned end */
         @media (max-width: 640px) {
-            .dash-header {
-                display: grid;
-                grid-template-columns: 1fr auto;
-                grid-template-rows: auto auto;
-                align-items: center;
-                gap: 0.75rem;
+            .layout-center .theme-toggle {
+                top: max(1.5rem, env(safe-area-inset-top, 10px));
+                left: 50%;
+                transform: translateX(-50%);
             }
             .dash-header .dash-brand {
                 grid-column: 1 / -1;

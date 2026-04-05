@@ -442,8 +442,13 @@
             margin: 0 auto;
         }
         @media (max-width: 640px) {
-            .login-card, .home-card { padding: 1.5rem 1.25rem; }
-            body.layout-center .shell-center { padding: 1rem; align-items: flex-start; padding-top: max(2rem, env(safe-area-inset-top, 0px)); }
+            .login-card, .home-card { padding: 1.5rem 1.25rem; margin: 0 auto; }
+            body.layout-center .shell-center { 
+                padding: 1rem; 
+                align-items: center; 
+                justify-content: center;
+                padding-top: max(2rem, env(safe-area-inset-top, 0px)); 
+            }
         }
         .home-card p { color: var(--muted); line-height: 1.5; }
 

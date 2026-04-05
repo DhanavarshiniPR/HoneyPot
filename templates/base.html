@@ -428,8 +428,19 @@
         }
 
         .muted { color: var(--muted); }
-        .login-card { width: 100%; max-width: 400px; padding: 2rem; }
-        .home-card { max-width: 480px; padding: 2rem; text-align: center; }
+        .login-card { 
+            width: 100%; 
+            max-width: 400px; 
+            padding: 2rem; 
+            margin: 0 auto;
+            text-align: left;
+        }
+        .home-card { 
+            max-width: 480px; 
+            padding: 2rem; 
+            text-align: center;
+            margin: 0 auto;
+        }
         @media (max-width: 640px) {
             .login-card, .home-card { padding: 1.5rem 1.25rem; }
             body.layout-center .shell-center { padding: 1rem; align-items: flex-start; padding-top: max(2rem, env(safe-area-inset-top, 0px)); }

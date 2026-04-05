@@ -347,6 +347,13 @@
             letter-spacing: 0.06em;
             padding: 0.25rem 0.6rem;
             border-radius: 6px;
+            white-space: nowrap;
+        }
+        @media (max-width: 480px) {
+            .badge {
+                font-size: 0.65rem;
+                padding: 0.2rem 0.5rem;
+            }
         }
         .badge-safe { background: rgba(0, 217, 163, 0.2); color: var(--accent); }
         .badge-suspicious { background: rgba(255, 176, 32, 0.2); color: var(--warn); }
@@ -369,7 +376,15 @@
             pre.log-view, pre.cmd-out {
                 font-size: 0.72rem;
                 padding: 0.75rem;
-                max-height: min(50vh, 360px);
+                max-height: min(40vh, 300px);
+                margin: 0 -1rem 1rem;
+                border-radius: 0;
+                border-left: none;
+                border-right: none;
+            }
+            main.main-panel[style*="max-width:900px"] {
+                margin: 0 !important;
+                max-width: none !important;
             }
         }
 
@@ -410,12 +425,24 @@
             gap: 1.25rem;
             margin: 1.5rem 0;
         }
+        @media (max-width: 640px) {
+            .chart-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+        }
         .chart-box {
             background: var(--bg-elevated);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             padding: 1rem;
             min-height: 260px;
+        }
+        @media (max-width: 640px) {
+            .chart-box {
+                min-height: 200px;
+                padding: 0.75rem;
+            }
         }
         .chart-box h3 {
             margin: 0 0 0.75rem;

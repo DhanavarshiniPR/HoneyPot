@@ -96,7 +96,7 @@
 
             <h2>Top source IPs (all requests)</h2>
             <p class="muted">Country appears after at least one login or command from that IP (cached; see <code style="color:var(--info);">honeypot_geo</code>).</p>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>IP address</th><th>Country</th><th>Requests</th></tr></thead>
                 <tbody>
                     {% for ip, n in top_ips %}
@@ -110,10 +110,10 @@
                     <tr><td colspan="3" class="muted">No data yet.</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
 
             <h2 style="margin-top:2rem;">Attacker profiles (top by activity)</h2>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>IP</th><th>Country</th><th>First seen</th><th>Last seen</th><th>Browser / Device</th><th>Hits</th></tr></thead>
                 <tbody>
                     {% for ip, p in top_attackers %}
@@ -130,10 +130,10 @@
                     <tr><td colspan="6" class="muted">No attacker profiles yet.</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
 
             <h2 style="margin-top:2rem;">Session tracking (top sessions)</h2>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>Session ID</th><th>IP</th><th>Actions</th><th>Duration (sec)</th><th>Browser / Device</th></tr></thead>
                 <tbody>
                     {% for s in top_sessions %}
@@ -148,11 +148,11 @@
                     <tr><td colspan="5" class="muted">No sessions yet.</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
 
             <h2 style="margin-top:2rem;">Brute-force flags</h2>
             <p class="muted">IPs with ≥ {{ login_threshold }} login attempts within {{ login_window }} minutes get a flag (heuristic for credential stuffing).</p>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>IP</th><th>Flags</th></tr></thead>
                 <tbody>
                     {% for ip, flags in ip_flags.items() %}
@@ -161,7 +161,7 @@
                     <tr><td colspan="2" class="muted">No flagged IPs yet.</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
 
             <h2 style="margin-top:2rem;">Real-time activity feed</h2>
             <p class="muted">Live stream of latest attacker actions (login attempts + commands).</p>

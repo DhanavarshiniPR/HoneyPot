@@ -97,7 +97,7 @@
 
             <h2>Geo heat ranking</h2>
             <p class="muted">Country intensity by event share in current filter window.</p>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>Country</th><th>Events</th><th>Heat</th></tr></thead>
                 <tbody>
                     {% set max_country = (agg.chart_country_data|max) if agg.chart_country_data else 1 %}
@@ -117,7 +117,7 @@
                     <tr><td colspan="3" class="muted">No geo data in this filter window.</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
 
             <h2>Command risk (numbers)</h2>
             <p class="muted">Rules live in <code style="color:var(--info);">honeypot_core.classify_command</code> — tune for your environment.</p>
@@ -144,7 +144,7 @@
             </ul>
 
             <h2>Most used commands</h2>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>Command</th><th>Count</th></tr></thead>
                 <tbody>
                     {% for cmd, n in agg.top_commands %}
@@ -153,10 +153,10 @@
                     <tr><td colspan="2" class="muted">No commands in the recent event window.</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
 
             <h2>Top IPs by command activity</h2>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>IP</th><th>Commands</th><th>Profile</th></tr></thead>
                 <tbody>
                     {% for ip, n in agg.top_ips_by_commands %}
@@ -165,10 +165,10 @@
                     <tr><td colspan="3" class="muted">—</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
 
             <h2>Logins per IP</h2>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>IP</th><th>Attempts (event log)</th></tr></thead>
                 <tbody>
                     {% for ip, n in agg.login_by_ip %}
@@ -177,10 +177,10 @@
                     <tr><td colspan="2" class="muted">—</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
 
             <h2>HTTP request volume (top IPs)</h2>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>IP</th><th>Total requests</th></tr></thead>
                 <tbody>
                     {% for ip, n in ip_request_counts %}
@@ -189,10 +189,10 @@
                     <tr><td colspan="2" class="muted">—</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
 
             <h2>Brute-force flags (state)</h2>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>IP</th><th>Flags</th><th>Recent stamps</th></tr></thead>
                 <tbody>
                     {% for ip, flags in ip_flags.items() %}
@@ -205,10 +205,10 @@
                     <tr><td colspan="3" class="muted">No flags.</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
 
             <h2>Top sessions by actions</h2>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>Session ID</th><th>Actions</th></tr></thead>
                 <tbody>
                     {% for sid, n in agg.top_sessions %}
@@ -217,10 +217,10 @@
                     <tr><td colspan="2" class="muted">No sessions in this filter window.</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
 
             <h2>MITRE ATT&amp;CK technique tags</h2>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>Technique</th><th>Matches</th></tr></thead>
                 <tbody>
                     {% for label, n in agg.top_techniques %}
@@ -229,7 +229,7 @@
                     <tr><td colspan="2" class="muted">No tagged techniques yet.</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
         </main>
     </div>
 </div>

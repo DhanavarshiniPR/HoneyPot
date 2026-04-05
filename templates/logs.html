@@ -50,7 +50,7 @@
 {% else %}No log lines yet. Interact with login or /vulnerable to generate entries.{% endfor %}</pre>
 
             <h2 style="margin-top:2rem;">Structured events (filtered)</h2>
-            <table class="data">
+            <div class="table-scroll"><table class="data">
                 <thead><tr><th>Timestamp</th><th>Type</th><th>IP</th><th>Country</th><th>Details</th><th>Profile</th></tr></thead>
                 <tbody>
                     {% for e in filtered_events %}
@@ -70,7 +70,7 @@
                     <tr><td colspan="6" class="muted">No events for current filters.</td></tr>
                     {% endfor %}
                 </tbody>
-            </table>
+            </table></div>
         </main>
     </div>
 </div>

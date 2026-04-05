@@ -26,7 +26,7 @@
         <p class="muted">Browsers: {{ (profile.browsers or [])|join(", ") or "—" }} · Devices: {{ (profile.devices or [])|join(", ") or "—" }}</p>
 
         <h2>Sessions</h2>
-        <table class="data">
+        <div class="table-scroll"><table class="data">
             <thead><tr><th>Session ID</th><th>Actions</th><th>Duration (sec)</th><th>User agent</th></tr></thead>
             <tbody>
                 {% for s in sessions %}
@@ -40,10 +40,10 @@
                 <tr><td colspan="4" class="muted">No sessions found.</td></tr>
                 {% endfor %}
             </tbody>
-        </table>
+        </table></div>
 
         <h2 style="margin-top:2rem;">Recent events</h2>
-        <table class="data">
+        <div class="table-scroll"><table class="data">
             <thead><tr><th>Timestamp</th><th>Type</th><th>Details</th><th>Risk</th><th>ATT&CK</th></tr></thead>
             <tbody>
                 {% for e in events %}
@@ -58,7 +58,7 @@
                 <tr><td colspan="5" class="muted">No events for this attacker yet.</td></tr>
                 {% endfor %}
             </tbody>
-        </table>
+        </table></div>
     </main>
 </div>
 {% endblock %}

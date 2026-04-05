@@ -498,6 +498,14 @@
             min-height: 44px;
             touch-action: manipulation;
         }
+        /* Override for layout-center pages (login/home) */
+        .layout-center .theme-toggle {
+            position: fixed;
+            top: max(1rem, env(safe-area-inset-top, 0px));
+            right: max(1rem, env(safe-area-inset-right, 0px));
+            left: auto !important;
+            transform: none !important;
+        }
         .theme-toggle:hover {
             border-color: var(--accent);
             background: var(--bg-elevated);
